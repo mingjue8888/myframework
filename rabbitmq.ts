@@ -1,6 +1,6 @@
 import joi from "joi";
 import amqp, { Channel } from "amqplib";
-import { Observable, Subscriber } from "rxjs";
+import { map, Observable, Subscriber } from "rxjs";
 
 const MQ_URL = joi.attempt(process.env.MQ_URL, joi.string().required());
 
@@ -73,24 +73,19 @@ export function attemptMessage<T>(schema: joi.ObjectSchema, errorExchange: strin
                         data: inputMessage.data,
                         errorMessage: error.message,
                         errorDetails: error.details,
-                    }
+                    };
                     await publish(errorExchange, errorRoutingKey, errorMessage);
                     inputMessage.ackMessage();
                 }
             });
         });
-    }
+    };
 }
 
 export function mapMessage<T, E>(mapping: (data: T) => E) {
     return function (input: Observable<SubscriberMessage<T>>) {
-        return new Observable(function (output: Subscriber<SubscriberMessage<E>>) {
-            input.subscribe(function (inputMessage) {
-                output.next({
-                    ...inputMessage,
-                    data: mapping(inputMessage.data),
-                });
-            });
-        });
-    }
+        return input.pipe(
+            map<SubscriberMessage<T>, SubscriberMessage<E>>(message => ({ ...message, data: mapping(message.data) })),
+        );
+    };
 }
