@@ -63,8 +63,8 @@ export function startWebsite(routers: ExpressRouter[], options?: WebsiteStartupO
 }
 
 export function toView(view: string, layout?: string) {
-    return asyncMiddleware(async function (_request, response) {
-        response.render(view, { layout });
+    return asyncMiddleware(async function (request, response) {
+        response.render(view, { user: request.user, layout });
     });
 }
 
