@@ -199,13 +199,14 @@ export const PasswordEncryptor = {
     },
 };
 
-export function signToken(userId: string, infos: object, refreshToken?: string) {
+export function signToken(userId: string, roles: string, permissions: string, refreshToken?: string) {
     const now = Math.floor(date().tz().toDate().getTime() / 1000);
     const accessTokenPayload = {
         sub: userId,
         exp: Math.floor(date().tz().add(env.JWT_REFRESH, "millisecond").toDate().getTime() / 1000),
         iat: now,
-        ...infos,
+        rle: roles,
+        prm: permissions,
     };
 
     if (refreshToken) {
