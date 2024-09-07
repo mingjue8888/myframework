@@ -1,13 +1,14 @@
 import { Knex } from "knex";
 import { NextFunction, Request, Response } from "express";
-import { safeTransaction } from "./knex";
+import { autoCommitTransaction } from "./knex";
+import { Middleware } from "./express-base";
 
-type TransactionHandler =
+type TransactionMiddleware =
     (request: Request, response: Response, transaction: Knex.Transaction) => Promise<void>;
 
-export function transactionMiddleware(handler: TransactionHandler) {
+export function transaction(handler: TransactionMiddleware): Middleware {
     return function (request: Request, response: Response, next: NextFunction) {
-        safeTransaction(transaction => handler(request, response, transaction))
+        autoCommitTransaction(transaction => handler(request, response, transaction))
             .then(() => next())
             .catch(error => next(error));
     }

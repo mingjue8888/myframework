@@ -33,7 +33,9 @@ const database = knex({
     },
 });
 
-export async function safeTransaction(handler: (transaction: knex.Knex.Transaction) => Promise<void>) {
+type TransactionHandler = (transaction: knex.Knex.Transaction) => Promise<void>;
+
+export async function autoCommitTransaction(handler: TransactionHandler) {
     const transaction = await database.transaction();
     await handler(transaction)
         .then(() => transaction.commit())
