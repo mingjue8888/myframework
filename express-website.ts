@@ -1,4 +1,4 @@
-import { Response } from "express";
+import express, { Response } from "express";
 import {
     asyncMiddleware, defaultExceptionHandler,
     ExpressRouter, HttpServerException,
@@ -34,6 +34,8 @@ export function startWebsite(routers: ExpressRouter[], options?: WebsiteStartupO
         preSetting(app) {
             app.engine("handlebars", engine());
             app.set("view engine", "handlebars");
+            app.set("views", "./views");
+            app.use(express.static("public"));
         },
         exceptionHandler(error: Error, response: Response) {
             if (options?.apiPrefix) {
@@ -67,12 +69,12 @@ export function toView(view: string, layout?: string) {
 }
 
 export function validRender(schema: Record<string, joi.AnySchema>): Middleware {
-    return asyncMiddleware(async function (_request, response) {
+    return asyncMiddleware(async function (request, response) {
         try {
             response.data = joi.attempt(response.data, joi.object(schema));
             response.view = joi.attempt(response.view, joi.string().required());
             response.layout = joi.attempt(response.layout, joi.string());
-            response.render(response.view, { data: response.data, layout: response.layout });
+            response.render(response.view, { user: request.user, data: response.data, layout: response.layout });
         } catch (error) {
             throw new ServerErrorException(`RenderViewError: ${error.details}`);
         }
