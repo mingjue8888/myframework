@@ -1,5 +1,5 @@
 import joi from "joi";
-import amqp, { Channel, Message } from "amqplib";
+import amqp, { Channel } from "amqplib";
 import { Observable, Subscriber } from "rxjs";
 
 const MQ_URL = joi.attempt(process.env.MQ_URL, joi.string().required());
@@ -58,7 +58,7 @@ export function consume<T>(queue: string, prefetch: number): Observable<Subscrib
     });
 }
 
-export function attemptMessage<T>(errorExchange: string, errorRoutingKey: string, schema: joi.ObjectSchema) {
+export function attemptMessage<T>(schema: joi.ObjectSchema, errorExchange: string, errorRoutingKey: string) {
     return function (input: Observable<SubscriberMessage<T>>) {
         return new Observable(function (output: Subscriber<SubscriberMessage<T>>) {
             input.subscribe(async function (inputMessage) {
