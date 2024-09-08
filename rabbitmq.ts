@@ -58,6 +58,14 @@ export function consume<T>(queue: string, prefetch: number): Observable<Subscrib
     });
 }
 
+export function mapMessage<T, E>(mapping: (data: T) => E) {
+    return function (input: Observable<SubscriberMessage<T>>) {
+        return input.pipe(
+            map(message => ({ ...message, data: mapping(message.data) })),
+        );
+    };
+}
+
 export function attemptMessage<T>(schema: joi.ObjectSchema, errorExchange: string, errorRoutingKey: string) {
     return function (input: Observable<SubscriberMessage<T>>) {
         return new Observable(function (output: Subscriber<SubscriberMessage<T>>) {
@@ -82,10 +90,3 @@ export function attemptMessage<T>(schema: joi.ObjectSchema, errorExchange: strin
     };
 }
 
-export function mapMessage<T, E>(mapping: (data: T) => E) {
-    return function (input: Observable<SubscriberMessage<T>>) {
-        return input.pipe(
-            map<SubscriberMessage<T>, SubscriberMessage<E>>(message => ({ ...message, data: mapping(message.data) })),
-        );
-    };
-}
