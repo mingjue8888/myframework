@@ -42,7 +42,7 @@ export async function publish(exchange: string, routingKey: string, data: object
     });
 }
 
-export function consume<T>(queue: string, prefetch: number): Observable<SubscriberMessage<T>> {
+export function consume(queue: string, prefetch: number): Observable<SubscriberMessage<unknown>> {
     return new Observable(function (observer) {
         !async function () {
             const channel = await aliveChannel(prefetch);
@@ -78,7 +78,7 @@ export function attemptMessage<T>(schema: joi.ObjectSchema, errorExchange: strin
                     output.next(outputMessage);
                 } catch (error) {
                     const errorMessage = {
-                        data: inputMessage.data,
+                        ...inputMessage,
                         errorMessage: error.message,
                         errorDetails: error.details,
                     };
