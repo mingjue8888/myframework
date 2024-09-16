@@ -35,7 +35,7 @@ const envSchema = joi.object({
         .default(1000 * 60 * 60 * 48),
 });
 
-const env = joi.attempt(process.env, envSchema, { allowUnknown: true });
+export const env = joi.attempt(process.env, envSchema, { allowUnknown: true });
 
 type ResponseData = object;
 type RequestData = {

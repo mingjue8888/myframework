@@ -62,7 +62,7 @@ export function startWebsite(routers: ExpressRouter[], options?: WebsiteStartupO
     });
 }
 
-export function toView(view: string, layout?: string) {
+export function toView(view: string, layout?: string): Middleware {
     return asyncMiddleware(async function (request, response) {
         response.render(view, { user: request.user, layout });
     });
