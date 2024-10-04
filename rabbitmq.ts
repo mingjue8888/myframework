@@ -1,6 +1,6 @@
 import joi from "joi";
 import amqp, { Channel } from "amqplib";
-import { map, Observable, Subscriber } from "rxjs";
+import { Observable } from "rxjs";
 
 const MQ_URL = joi.attempt(process.env.MQ_URL, joi.string().required());
 
@@ -59,34 +59,24 @@ export function consume(queue: string, prefetch: number): Observable<SubscriberM
 }
 
 export function mapMessage<T, E>(mapping: (data: T) => E) {
-    return function (input: Observable<SubscriberMessage<T>>) {
-        return input.pipe(
-            map(message => ({ ...message, data: mapping(message.data) })),
-        );
-    };
+    return function (source: SubscriberMessage<T>): SubscriberMessage<E> {
+        return {
+            exchange: source.exchange,
+            routingKey: source.routingKey,
+            data: mapping(source.data),
+            ackMessage: source.ackMessage,
+        }
+    }
 }
 
-export function attemptMessage<T>(schema: joi.ObjectSchema, errorExchange: string, errorRoutingKey: string) {
-    return function (input: Observable<SubscriberMessage<T>>) {
-        return new Observable(function (output: Subscriber<SubscriberMessage<T>>) {
-            input.subscribe(async function (inputMessage) {
-                try {
-                    const outputMessage = {
-                        ...inputMessage,
-                        data: joi.attempt(inputMessage.data, schema, { allowUnknown: true }),
-                    };
-                    output.next(outputMessage);
-                } catch (error) {
-                    const errorMessage = {
-                        ...inputMessage,
-                        errorMessage: error.message,
-                        errorDetails: error.details,
-                    };
-                    await publish(errorExchange, errorRoutingKey, errorMessage);
-                    inputMessage.ackMessage();
-                }
-            });
-        });
-    };
+export function attemptMessage<T>(errorHandler: (message: SubscriberMessage<T>) => Promise<void>, schema: joi.ObjectSchema) {
+    return function (message: SubscriberMessage<T>): boolean {
+        try {
+            message.data = joi.attempt(message.data, schema, { allowUnknown: true });
+            return true;
+        } catch (error) {
+            errorHandler(message).then(() => message.ackMessage());
+            return false;
+        }
+    }
 }
-
