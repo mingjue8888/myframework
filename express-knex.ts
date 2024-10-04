@@ -1,7 +1,7 @@
 import { Knex } from "knex";
 import { NextFunction, Request, Response } from "express";
 import { transaction } from "./knex";
-import { Middleware } from "./express-base";
+import { Middleware } from "./express";
 
 type TransactionRequestHandler =
     (request: Request, response: Response, transaction: Knex.Transaction) => Promise<void>;

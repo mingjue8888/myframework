@@ -6,7 +6,7 @@ import {
     ServerErrorException,
     startup,
     StartupOptions,
-} from "./express-base";
+} from "./express";
 import { engine } from "express-handlebars";
 import joi from "joi";
 
