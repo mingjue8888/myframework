@@ -1,4 +1,6 @@
 {
+  "name": "@mingjue/framework",
+  "version": "1.0.0",
   "devDependencies": {
     "@types/amqplib": "^0.10.5",
     "@types/bcrypt": "^5.0.2",
