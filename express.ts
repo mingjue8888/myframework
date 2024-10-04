@@ -247,14 +247,14 @@ export interface StartupOptions {
     preSetting?: (app: express.Express) => void;
 }
 
-export function startup(routers: ExpressRouter[], options: StartupOptions) {
+export function startup(routers: ExpressRouter[], options?: StartupOptions) {
     const app = express();
 
-    if (options.preSetting) {
+    if (options?.preSetting) {
         options.preSetting(app);
     }
 
-    if (options.authenticationFindUserLogic) {
+    if (options?.authenticationFindUserLogic) {
         const jwtStrategyOptions: StrategyOptions = {
             secretOrKey: env.JWT_SECRET,
             jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
@@ -285,7 +285,7 @@ export function startup(routers: ExpressRouter[], options: StartupOptions) {
         .use(passport.initialize())
         .use(dataInitialize);
 
-    options.expandMiddlewares?.forEach(middleware => app.use(middleware));
+    options?.expandMiddlewares?.forEach(middleware => app.use(middleware));
 
     const router = routers.reduce(
         (router, er) =>
@@ -295,7 +295,7 @@ export function startup(routers: ExpressRouter[], options: StartupOptions) {
 
     return app.use(router)
         .use(exceptionTransformToMiddleware(wrongParameterExceptionTransform))
-        .use(exceptionTransformToMiddleware(options.expandExceptionTransform))
-        .use(partialErrorRequestHandler(options.exceptionHandler || defaultExceptionHandler))
+        .use(exceptionTransformToMiddleware(options?.expandExceptionTransform))
+        .use(partialErrorRequestHandler(options?.exceptionHandler || defaultExceptionHandler))
         .listen(env.NODE_PORT, () => logger.info(`Success running on port ${env.NODE_PORT}`));
 }
